@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tm.thinknote.db.NoteDatabase
 import com.tm.thinknote.model.Note
 import com.tm.thinknote.notes.ListNotesScreen
 import com.tm.thinknote.ui.theme.ThinkNoteAppTheme
@@ -42,11 +43,11 @@ import thinknote.composeapp.generated.resources.empty
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App() {
+fun App(database: NoteDatabase) {
 
     ThinkNoteAppTheme {
 
-        val viewModel = viewModel { HomeViewModel() }
+        val viewModel = viewModel { HomeViewModel(database) }
         val bottomSheetState = rememberModalBottomSheetState()
         var showBottomSheet by remember { mutableStateOf(false) }
         val coroutinesScope = rememberCoroutineScope()
@@ -60,7 +61,7 @@ fun App() {
                 }
             }
         ) {
-            val notes = viewModel.notes.collectAsStateWithLifecycle()
+            val notes = viewModel.notes.collectAsStateWithLifecycle(emptyList())
             Column(modifier = Modifier.padding(it)) {
                 Text(
                     text = "Notes",

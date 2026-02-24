@@ -1,17 +1,20 @@
 package com.tm.thinknote
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.tm.thinknote.db.NoteDatabase
 import com.tm.thinknote.model.Note
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class HomeViewModel: ViewModel() {
+class HomeViewModel(noteDatabase: NoteDatabase): ViewModel() {
 
-    private val _notes = MutableStateFlow<List<Note>>(emptyList())
-    val notes = _notes.asStateFlow()
+    val dao = noteDatabase.noteDao()
+    private val _notes = dao.getAllNotes()
+    val notes = _notes
 
     fun addNotes(note: Note) {
-        _notes.update { it + note }
+        viewModelScope.launch {
+            dao.insertNote(note)
+        }
     }
 }
