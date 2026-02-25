@@ -11,12 +11,12 @@ import kotlinx.coroutines.IO
 
 @Database(entities = [Note::class], version = 1, exportSchema = true)
 @ConstructedBy(NoteDatabaseConstructor::class)
-abstract class NoteDatabase: RoomDatabase() {
+abstract class NoteDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 }
 
 @Suppress("KotlinNoActualForExpect")
-expect object NoteDatabaseConstructor: RoomDatabaseConstructor<NoteDatabase> {
+expect object NoteDatabaseConstructor : RoomDatabaseConstructor<NoteDatabase> {
     override fun initialize(): NoteDatabase
 }
 
