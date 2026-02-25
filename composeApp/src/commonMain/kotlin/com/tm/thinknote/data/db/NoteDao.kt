@@ -1,4 +1,4 @@
-package com.tm.thinknote.db
+package com.tm.thinknote.data.db
 
 import androidx.room.Dao
 import androidx.room.Insert

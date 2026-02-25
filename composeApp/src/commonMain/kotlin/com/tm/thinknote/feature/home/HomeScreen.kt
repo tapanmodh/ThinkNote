@@ -19,6 +19,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,7 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.tm.thinknote.HomeViewModel
-import com.tm.thinknote.db.NoteDatabase
+import com.tm.thinknote.data.cache.DataStoreManager
+import com.tm.thinknote.data.db.NoteDatabase
 import com.tm.thinknote.model.Note
 import com.tm.thinknote.notes.ListNotesScreen
 import kotlinx.coroutines.launch
@@ -45,12 +47,20 @@ import thinknote.composeapp.generated.resources.user
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(database: NoteDatabase, navController: NavController) {
-    val viewModel = viewModel { HomeViewModel(database) }
+fun HomeScreen(
+    database: NoteDatabase,
+    dataStoreManager: DataStoreManager,
+    navController: NavController
+) {
+    val viewModel = viewModel { HomeViewModel(database, dataStoreManager) }
     val bottomSheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val coroutinesScope = rememberCoroutineScope()
 
+    val email = remember { mutableStateOf("") }
+    LaunchedEffect(true) {
+        email.value = dataStoreManager.getEmail() ?: ""
+    }
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
@@ -68,13 +78,29 @@ fun HomeScreen(database: NoteDatabase, navController: NavController) {
                     modifier = Modifier.fillMaxWidth().padding(16.dp).align(Alignment.Center),
                     fontSize = 30.sp
                 )
-                Image(
-                    painterResource(Res.drawable.user),
-                    null,
-                    modifier = Modifier.padding(end = 16.dp).size(48.dp).padding(4.dp).clickable {
-                        navController.navigate("signup")
-                    }.align(Alignment.CenterEnd)
-                )
+                Row(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+
+                    email?.value?.let {
+                        Text(it)
+                    }
+                    Image(
+                        painterResource(Res.drawable.user),
+                        null,
+                        modifier = Modifier.padding(end = 16.dp).size(48.dp).padding(4.dp)
+                            .clickable {
+                                coroutinesScope.launch {
+                                    if (dataStoreManager.getToken() != null) {
+                                        navController.navigate("profile")
+                                    } else {
+                                        navController.navigate("signup")
+                                    }
+                                }
+                            }
+                    )
+                }
             }
             if (notes.value.isNotEmpty()) {
                 ListNotesScreen(notes.value)

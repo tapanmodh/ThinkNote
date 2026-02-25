@@ -3,7 +3,7 @@ package com.tm.thinknote
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.tm.thinknote.db.NoteDatabase
+import com.tm.thinknote.data.db.NoteDatabase
 
 fun getDatabaseBuilder(context: Context): RoomDatabase.Builder<NoteDatabase> {
 
