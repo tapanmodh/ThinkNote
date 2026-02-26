@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import thinknote.composeapp.generated.resources.Res
 import thinknote.composeapp.generated.resources.empty
+import thinknote.composeapp.generated.resources.sync
 import thinknote.composeapp.generated.resources.user
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,8 +59,10 @@ fun HomeScreen(
     val coroutinesScope = rememberCoroutineScope()
 
     val email = remember { mutableStateOf("") }
+    val userId = remember { mutableStateOf("") }
     LaunchedEffect(true) {
         email.value = dataStoreManager.getEmail() ?: ""
+        userId.value = dataStoreManager.getUserId() ?: ""
     }
     Scaffold(
         floatingActionButton = {
@@ -83,9 +86,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
 
-                    email?.value?.let {
-                        Text(it)
-                    }
+                    Text(email.value)
                     Image(
                         painterResource(Res.drawable.user),
                         null,
@@ -100,6 +101,18 @@ fun HomeScreen(
                                 }
                             }
                     )
+                    if (email.value.isNotEmpty()) {
+                        Image(
+                            painterResource(Res.drawable.sync),
+                            null,
+                            modifier = Modifier.padding(end = 16.dp).size(48.dp).padding(4.dp)
+                                .clickable {
+                                    coroutinesScope.launch {
+                                        viewModel.performSync()
+                                    }
+                                }
+                        )
+                    }
                 }
             }
             if (notes.value.isNotEmpty()) {
@@ -114,6 +127,7 @@ fun HomeScreen(
                 showBottomSheet = false
             }, sheetState = bottomSheetState) {
                 AddItemDialog(
+                    userId = userId.value,
                     onCancel = {
                         coroutinesScope.launch {
                             bottomSheetState.hide()
@@ -133,7 +147,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun AddItemDialog(onCancel: () -> Unit, onSave: (Note) -> Unit) {
+fun AddItemDialog(userId: String, onCancel: () -> Unit, onSave: (Note) -> Unit) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -168,7 +182,14 @@ fun AddItemDialog(onCancel: () -> Unit, onSave: (Note) -> Unit) {
                 onCancel()
             })
             Text(text = "Save", modifier = Modifier.padding(8.dp).clickable {
-                onSave(Note(title, description))
+                onSave(
+                    Note(
+                        title = title,
+                        description = description,
+                        userId = userId,
+                        isDirty = true
+                    )
+                )
             })
         }
     }
